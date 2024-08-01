@@ -1,0 +1,65 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/molnarjani/GoForIt/models"
+)
+
+// MetaTags defines meta tags.
+templ MetaTags(keywords, description string) {
+	<meta name="keywords" content={keywords}/>
+	<meta name="description" content={description}/>
+}
+
+// BodyContent defines HTML content.
+templ BodyContent(todos []models.Todo) {
+	<div id="app">
+		<div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-16">
+			<div class="px-4 py-2 flex items-center justify-center">
+				<img src="/static/images/gopher-dance.gif" width="40px" alt="Gopher Dance">
+				<h1 class="animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-5xl font-black">Go For It!</h1>
+				<img src="/static/images/gopher-dance.gif" width="40px" alt="Gopher Dance">
+			</div>
+
+			<form id="add-todo-form" hx-on::after-request="clearForm()" hx-post="/api/add-todo" hx-swap="innerHTML" hx-target="#todos" hx-sync="closest form:abort" class="w-full max-w-sm mx-auto px-4 py-2">
+				<div class="flex items-center border-b-2 border-teal-500 py-2">
+					<input id="title" name="title" required="true" class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" type="text" placeholder="Add a task">
+					<button class="flex-shrink-0 bg-teal-500 hover:bg-teal-700 border-teal-500 hover:border-teal-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">Add</button>
+				</div>
+			</form>
+		</div>
+
+		<div class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+			<div class="bg-white px-4 sm:px-6 lg:px-8">
+				<div class="mx-auto max-w-4xl">
+					<div id="todos">
+						@TodosContent(todos)
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ TodoContent(t models.Todo) {
+	<li class="py-4 px-4">
+		<div class="flex items-center justify-between w-full">
+			<div class="flex items-center space-x-4">
+				<input name="todoId" type="hidden" id="todoId" value="{t.Id}"/>
+				<input hx-patch={string(templ.URL(fmt.Sprintf("/api/update-todo/%s", t.Id)))} hx-trigger="click" name="done" type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded" id="checkbox" checked?={t.Done}/>
+				<label for="checkbox" class="ml-3 block text-gray-900">
+					<span class="text-left text-lg font-medium">{t.Title}</span>
+				</label>
+			</div>
+			<button type="button" class="text-gray-400 bg-transparent border border-solid border-gray-400 hover:bg-gray-500 hover:text-white active:bg-gray-600 font-bold uppercase text-xs px-4 py-2 rounded-full outline-none focus:outline-none ml-4 ease-linear transition-all duration-150" hx-delete={string(templ.URL(fmt.Sprintf("/api/delete-todo/%s", t.Id)))} hx-trigger="click" hx-target="#todos" hx-swap="innerHTML">remove</button>
+		</div>
+	</li>
+}
+
+templ TodosContent(todos []models.Todo) {
+	<ul class="divide-y divide-gray-200 px-4">
+		for _, todo := range todos {
+			@TodoContent(todo)
+		}
+	</ul>
+}
